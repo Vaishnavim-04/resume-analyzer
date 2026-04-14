@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Resume Analyzer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="page">
+      <div class="app">
+        <header class="card card--header">
+          <h1>AI Resume Analyzer</h1>
+          <p class="subtitle">
+            Paste a job description and your resume — we’ll highlight overlap,
+            gaps, and next steps in seconds.
+          </p>
+        </header>
+
+        <section class="card card--form">
+          <h2 class="card-title">Your inputs</h2>
+
+          <div class="form-inputs-surface">
+            <div class="input-card">
+              <label class="input-card__label" for="jobDescription">
+                <span class="input-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+                    <path d="M12 12v.01" />
+                  </svg>
+                </span>
+                <span class="input-card__label-text">Job Description</span>
+              </label>
+              <textarea
+                class="form-textarea"
+                id="jobDescription"
+                rows="6"
+                placeholder="Paste the role overview, requirements, and tech stack here…"
+              ></textarea>
+            </div>
+
+            <div class="input-card">
+              <label class="input-card__label" for="resumeText">
+                <span class="input-card__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <line x1="10" y1="9" x2="8" y2="9" />
+                  </svg>
+                </span>
+                <span class="input-card__label-text">Resume</span>
+              </label>
+              <p class="input-card__hint">
+                Type or paste text, or upload a PDF and we’ll extract it for you.
+              </p>
+              <div class="upload-row">
+                <input
+                  type="file"
+                  id="resumePdf"
+                  class="sr-only"
+                  accept="application/pdf,.pdf"
+                  aria-label="Upload resume PDF"
+                />
+                <button type="button" class="btn btn--upload" id="pickPdfBtn">
+                  <svg class="btn--upload__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Upload PDF
+                </button>
+                <span class="pdf-filename" id="pdfFileLabel" hidden></span>
+              </div>
+              <p id="pdfStatus" class="pdf-status" role="status" aria-live="polite"></p>
+              <textarea
+                class="form-textarea"
+                id="resumeText"
+                rows="6"
+                placeholder="Your experience, skills, and projects…"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn--primary btn--analyze" id="analyzeBtn">
+              Analyze Resume
+            </button>
+          </div>
+        </section>
+
+        <section class="card card--results output" aria-live="polite">
+          <h2 class="card-title">Your results</h2>
+
+          <div id="analysisPlaceholder" class="analysis-placeholder">
+            When you’re ready, click <strong>Analyze Resume</strong> — your match
+            score and tailored feedback will show up here.
+          </div>
+
+          <div id="analysisLoading" class="analysis-loading" hidden>
+            <div class="spinner-wrap" role="presentation" aria-hidden="true">
+              <div class="spinner"></div>
+            </div>
+            <p class="analysis-loading-text">Analyzing…</p>
+            <p class="analysis-loading-sub">Comparing skills and wording…</p>
+          </div>
+
+          <div id="analysisContent" class="analysis-content" hidden>
+            <div
+              id="matchScoreBox"
+              class="score-display score-display--mid panel-animate"
+              style="--delay: 0ms"
+              aria-label="Match score"
+            >
+              <div
+                id="scoreRing"
+                class="score-ring"
+                style="--progress: 0"
+              >
+                <div class="score-ring__inner">
+                  <span id="matchScoreValue" class="match-score-value">0%</span>
+                </div>
+              </div>
+              <p class="match-score-label">Match Score</p>
+            </div>
+
+            <div
+              id="emptySkillsHint"
+              class="insights-banner"
+              role="status"
+              hidden
+            >
+              <strong>Tip:</strong> We didn’t spot many recognizable tech
+              keywords. Try pasting a job post that lists tools (e.g. React,
+              Java, SQL) and mirror those terms in your resume for a clearer
+              match.
+            </div>
+
+            <div
+              class="analysis-panel analysis-panel--strengths panel-animate"
+              style="--delay: 80ms"
+            >
+              <div class="analysis-panel__head">
+                <svg
+                  class="panel-icon panel-icon--strengths"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                <h3>Top Strengths</h3>
+              </div>
+              <div id="strengthTags" class="tag-list tag-list--match"></div>
+              <p id="strengthTagsEmpty" class="tag-empty" hidden>
+                Your resume currently does not match key skills required for this
+                role.
+              </p>
+              <ul id="strengthsList" class="analysis-list"></ul>
+            </div>
+
+            <div
+              class="analysis-panel analysis-panel--gaps panel-animate"
+              style="--delay: 160ms"
+            >
+              <div class="analysis-panel__head">
+                <svg
+                  class="panel-icon panel-icon--gaps"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                  />
+                </svg>
+                <h3>Skill Gaps</h3>
+              </div>
+              <div id="gapTags" class="tag-list tag-list--gap"></div>
+              <p id="gapTagsEmpty" class="tag-empty" hidden>
+                Nothing missing from our keyword list — nice alignment.
+              </p>
+            </div>
+
+            <div
+              class="analysis-panel analysis-panel--suggestions panel-animate"
+              style="--delay: 240ms"
+            >
+              <div class="analysis-panel__head">
+                <svg
+                  class="panel-icon panel-icon--suggestions"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M12 2a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm-1 18h2v2h-2v-2z"
+                  />
+                </svg>
+                <h3>Suggestions</h3>
+              </div>
+              <ul id="suggestionsList" class="analysis-list"></ul>
+            </div>
+          </div>
+
+          <div
+            id="resultMessage"
+            class="result-message"
+            role="alert"
+            hidden
+          ></div>
+        </section>
+      </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>
